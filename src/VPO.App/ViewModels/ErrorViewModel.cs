@@ -1,6 +1,4 @@
-using System;
-
-namespace VPO.App.Models
+namespace VPO.App.ViewModels
 {
     public class ErrorViewModel
     {

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using VPO.App.Models;
+using VPO.App.ViewModels;
 
 namespace VPO.App.Controllers
 {

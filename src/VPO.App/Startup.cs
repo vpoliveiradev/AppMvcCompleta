@@ -9,6 +9,7 @@ using VPO.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using VPO.Business.Interfaces;
 using VPO.Data.Repository;
+using AutoMapper;
 
 namespace VPO.App
 {
@@ -34,6 +35,8 @@ namespace VPO.App
 
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            services.AddAutoMapper(typeof(Startup));
 
             services.AddControllersWithViews();
 
