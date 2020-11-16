@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using VPO.Business.Models;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
+using System;
 
 namespace VPO.Data.Context
 {
@@ -8,6 +11,12 @@ namespace VPO.Data.Context
     {
         public MeuDbContext(DbContextOptions<MeuDbContext> options) : base(options)
         {
+            //Para resolver este erro InvalidOperationException: The instance of entity type  
+            //cannot be tracked because another instance with the same key value for {'Id'} is already being tracked. 
+            //When attaching existing entities, ensure that only one entity instance with a given key value is attached. 
+            //Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see the conflicting key values.
+            ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+            ChangeTracker.AutoDetectChangesEnabled = false;
         }
 
         public DbSet<Produto> Produtos { get; set; }
@@ -29,6 +38,24 @@ namespace VPO.Data.Context
                 relationship.DeleteBehavior = DeleteBehavior.ClientSetNull;
 
             base.OnModelCreating(modelBuilder);
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
+        {
+            foreach (var entry in ChangeTracker.Entries().Where(entry => entry.Entity.GetType().GetProperty("DataCadastro") != null))
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Property("DataCadastro").CurrentValue = DateTime.Now;
+                }
+
+                if (entry.State == EntityState.Modified)
+                {
+                    entry.Property("DataCadastro").IsModified = false;
+                }
+            }
+
+            return base.SaveChangesAsync(cancellationToken);
         }
     }
 }
