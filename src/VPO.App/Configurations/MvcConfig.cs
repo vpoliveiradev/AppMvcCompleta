@@ -22,6 +22,7 @@ namespace VPO.App.Configurations
                 o.ModelBindingMessageProvider.SetValueMustBeANumberAccessor(x => "O campo deve ser numérico.");
                 o.ModelBindingMessageProvider.SetValueMustNotBeNullAccessor(x => "Este campo precisa ser preenchido.");
 
+                //valida os tokens gerados, para evitar páginas fakes de consumir a aplicação (ataques CSRF ou XSRF) e substitui o [ValidateAntiForgeryToken] nas controllers
                 o.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
             });
 

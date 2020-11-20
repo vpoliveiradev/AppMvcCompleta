@@ -24,10 +24,35 @@ namespace VPO.App.Controllers
             return View();
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        [Route("erro/{id:length(3,3)}")]
+        public IActionResult Error(int id)
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            var errorModel = new ErrorViewModel();
+
+            if (id == 500)
+            {
+                errorModel.Message = "Ocorreu um erro! Tente novamente mais tarde ou contate nosso suporte.";
+                errorModel.Title = "Ocorreu um erro!";
+                errorModel.Code = id;
+            }
+            else if (id == 404)
+            {
+                errorModel.Message = "A página que está procurando não existe! <br />Em caso de dúvidas entre em contato com nosso suporte";
+                errorModel.Title = "Ops! Página não encontrada.";
+                errorModel.Code = id;
+            }
+            else if (id == 403)
+            {
+                errorModel.Message = "Você não tem permissão para fazer isto.";
+                errorModel.Title = "Acesso Negado";
+                errorModel.Code = id;
+            }
+            else
+            {
+                return StatusCode(500);
+            }
+
+            return View("Error", errorModel);
         }
     }
 }

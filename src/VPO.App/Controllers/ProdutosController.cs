@@ -6,23 +6,30 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using VPO.App.Extensions;
 using VPO.App.ViewModels;
 using VPO.Business.Interfaces;
 using VPO.Business.Models;
 
 namespace VPO.App.Controllers
 {
+    [Authorize]
     public class ProdutosController : BaseController
     {
         private readonly IProdutoRepository _produtoRepository;
         private readonly IFornecedorRepository _fornecedorRepository;
+        private readonly IProdutoService _produtoService;
         private readonly IMapper _mapper;
 
         public ProdutosController(IProdutoRepository produtoRepository,
-                                  IMapper mapper, IFornecedorRepository fornecedorRepository)
-        {
+                                  IMapper mapper,
+                                  IFornecedorRepository fornecedorRepository,
+                                  IProdutoService produtoService,
+                                  INotifier notifier) : base(notifier)
+        { 
             _produtoRepository = produtoRepository;
             _fornecedorRepository = fornecedorRepository;
+            _produtoService = produtoService;
             _mapper = mapper;
         }
 
@@ -44,6 +51,7 @@ namespace VPO.App.Controllers
             return View(produtoViewModel);
         }
 
+        [ClaimsAuthorize("Produto", "Adicionar")]
         [Route("novo-produto")]
         public async Task<IActionResult> Create()
         {
@@ -51,6 +59,7 @@ namespace VPO.App.Controllers
             return View(produtoViewModel);
         }
 
+        [ClaimsAuthorize("Produto", "Adicionar")]
         [Route("novo-produto")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -68,11 +77,14 @@ namespace VPO.App.Controllers
 
             produtoViewModel.Imagem = imgPrefixo + produtoViewModel.ImagemUpload.FileName;
 
-            await _produtoRepository.Add(_mapper.Map<Produto>(produtoViewModel));
+            await _produtoService.Adicionar(_mapper.Map<Produto>(produtoViewModel));
+
+            if(!IsValid()) return View(produtoViewModel);
 
             return RedirectToAction("Index");
         }
 
+        [ClaimsAuthorize("Produto", "Editar")]
         [Route("editar-produto/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id)
         {
@@ -83,6 +95,7 @@ namespace VPO.App.Controllers
             return View(produtoViewModel);
         }
 
+        [ClaimsAuthorize("Produto", "Editar")]
         [Route("editar-produto/{id:guid}")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -111,11 +124,14 @@ namespace VPO.App.Controllers
             produtoAtualizacao.Valor = produtoViewModel.Valor;
             produtoAtualizacao.Ativo = produtoViewModel.Ativo;
 
-            await _produtoRepository.Update(_mapper.Map<Produto>(produtoAtualizacao));
+            await _produtoService.Atualizar(_mapper.Map<Produto>(produtoAtualizacao));
+
+            if(!IsValid()) return View(produtoViewModel);
 
             return RedirectToAction(nameof(Index));
         }
 
+        [ClaimsAuthorize("Produto", "Excluir")]
         [Route("excluir-produto/{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -125,7 +141,8 @@ namespace VPO.App.Controllers
 
             return View(produtoViewModel);
         }
-        
+
+        [ClaimsAuthorize("Produto", "Excluir")]
         [Route("excluir-produto/{id:guid}")]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -135,9 +152,13 @@ namespace VPO.App.Controllers
 
             if (produtoViewModel == null) return NotFound();
 
-            await _produtoRepository.Remove(id);
+            await _produtoService.Remover(id);
 
-            return View(nameof(Index));
+            if(!IsValid()) return View(produtoViewModel);
+
+            TempData["Sucesso"] = "Produto excluído com sucesso!";
+
+            return RedirectToAction(nameof(Index));
         }
 
         private async Task<ProdutoViewModel> ObterProduto(Guid id)
